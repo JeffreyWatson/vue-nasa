@@ -1,36 +1,68 @@
 <template>
-  <div class="home flex-grow-1 d-flex flex-column align-items-center justify-content-center">
-    <div class="home-card p-5 bg-white rounded elevation-3">
-      <img src="https://bcw.blob.core.windows.net/public/img/8600856373152463" alt="CodeWorks Logo" class="rounded-circle">
-      <h1 class="my-5 bg-dark text-white p-3 rounded text-center">
-        Vue 3 Starter
-      </h1>
-    </div>
+  <div class="d-flex justify-content-center bg-dark">
+    <label for="datepicker"
+      >Choose Any Date. Not from the future though!
+    </label>
+    <input
+      class="ms-3 mb-2"
+      type="date"
+      id="datepicker"
+      name="datepicker"
+      v-model="datePicker"
+      @change="getApodByDate()"
+    />
+  </div>
+  <div
+    class="home d-flex flex-column justify-content-start"
+    :style="`background-image: url(${apod.url})`"
+  >
+    <p class="text-light text-center border-bottom m-2">
+      <b>{{ apod.date }}</b>
+    </p>
+    <h1 class="my-1 bg-dark text-white p-3 rounded text-center">
+      {{ apod.title }}
+    </h1>
+    <p class="text-light text-uppercase mt-2 mb-0">{{ apod.explanation }}</p>
   </div>
 </template>
 
 <script>
+import { computed, onMounted } from "vue";
+import { ref } from "@vue/reactivity";
+import { AppState } from "../AppState";
+import { apodService } from "../services/ApodService";
+
 export default {
-  name: 'Home'
-}
+  name: "home",
+  setup() {
+    const datePicker = ref("");
+    onMounted(async () => {
+      try {
+        await apodService.getApod();
+      } catch (error) {
+        logger.error(error);
+        Pop.toast(error.message, "error");
+      }
+    });
+    return {
+      datePicker,
+      apod: computed(() => AppState.apod),
+      async getApodByDate() {
+        try {
+          await apodService.getApodByDate(datePicker.value);
+        } catch (error) {
+          logger.error(error);
+          Pop.toast(error.message, "error");
+        }
+      },
+    };
+  },
+};
 </script>
 
 <style scoped lang="scss">
-.home{
-  display: grid;
-  height: 80vh;
-  place-content: center;
-  text-align: center;
-  user-select: none;
-  .home-card{
-    width: 50vw;
-    > img{
-      height: 200px;
-      max-width: 200px;
-      width: 100%;
-      object-fit: contain;
-      object-position: center;
-    }
-  }
+.home {
+  height: 100vh;
+  background-size: cover;
 }
 </style>
